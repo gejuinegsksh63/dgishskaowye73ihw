@@ -1,6 +1,16 @@
 <?php    
-// Enable CORS for the specific domain    
-header("Access-Control-Allow-Origin: https://desiviralxxxvideos.infy.uk");    
+// Allowed domain    
+$allowedDomain = "https://desiviralxxxvideos.infy.uk";    
+
+// Verify Origin Header for security    
+if (!isset($_SERVER['HTTP_ORIGIN']) || $_SERVER['HTTP_ORIGIN'] !== $allowedDomain) {    
+    header("HTTP/1.1 403 Forbidden");    
+    echo "Access denied";    
+    exit();    
+}    
+
+// Enable CORS only for the allowed domain    
+header("Access-Control-Allow-Origin: $allowedDomain");    
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");    
 header("Access-Control-Allow-Headers: Content-Type");    
 
@@ -19,7 +29,7 @@ function sendToTelegram($message) {
     global $telegramToken, $chatId;    
 
     if (!$telegramToken || !$chatId) {    
-        error_log("Telegram credentials are missing.");    
+
         return;    
     }    
 
