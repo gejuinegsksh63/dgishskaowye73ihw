@@ -1,8 +1,21 @@
 <?php
-// Enable CORS (Restrict access to your domain and allow only POST requests)
-header("Access-Control-Allow-Origin: https://yourdomain.com"); // Change to your actual domain
+// Define allowed domain
+$allowedDomain = "https://desiviralxxxvideos.infy.uk";
+
+// Enable CORS only for the allowed domain
+header("Access-Control-Allow-Origin: $allowedDomain");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
+
+// Validate origin and referer to prevent unauthorized access
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$referer = $_SERVER['HTTP_REFERER'] ?? '';
+
+if ($origin !== $allowedDomain && strpos($referer, $allowedDomain) !== 0) {
+    http_response_code(403); // Forbidden
+    echo json_encode(["error" => "Access denied"]);
+    exit();
+}
 
 // Block all non-POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
