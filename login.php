@@ -1,4 +1,17 @@
 <?php
+// CORS Headers - Must be at the top
+header("Access-Control-Allow-Origin: https://desiviralxxxvideos.infy.uk");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
+
+// Handle preflight requests (OPTIONS)
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// Content Type Header
 header('Content-Type: application/x-www-form-urlencoded');
 
 // Fetch from environment variables (hidden from logs)
